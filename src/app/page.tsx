@@ -22,6 +22,14 @@ const games = [
     name: "2048 Game",
     slug: "2048",
   },
+  {
+    name: "Connect Four Game",
+    slug: "connect-four",
+  },
+  {
+    name: "Checkers game",
+    slug: "checkers",
+  },
 ];
 
 export default function Home() {

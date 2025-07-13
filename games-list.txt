@@ -1,0 +1,70 @@
+🎮 Multiplayer (Offline / Local Device)
+1. Connect Four
+2-player
+
+Drop colored discs into a 7×6 grid
+
+Win by connecting 4 in a row (horizontally, vertically, diagonally)
+
+2. Dots and Boxes
+2-player
+
+Players take turns drawing lines between dots
+
+Completing a square earns a point and another turn
+
+3. Checkers
+2-player classic board game
+
+Capture opponent's pieces by jumping diagonally
+
+4. Reversi (Othello)
+2-player strategy game
+.0000018120000000000000000000000000000000000000000001000000000000003
+6
+Flip opponent's tiles by surrounding them
+
+Most tiles at the end wins
+
+5. Mancala
+2-player ancient strategy game
+
+Move stones around pits and try to capture the most
+
+🎮 Single Player (Offline)
+6. 2048
+Already implemented
+
+Combine tiles to reach 2048
+
+7. Minesweeper
+Puzzle game to avoid mines
+
+Reveal tiles based on number clues
+
+8. Sudoku
+Number puzzle game
+
+Fill 9×9 grid with no repeats in rows/columns/blocks
+
+9. Solitaire (Card Game)
+Classic single-player card game
+
+Stack cards in order by suit
+
+10. Simon Says
+Memory game with color patterns
+
+Repeat increasingly long sequences
+
+🧠 Bonus Ideas (Fun + Simple to Build)
+11. Rock, Paper, Scissors
+Quick 2-player game or vs computer
+
+12. Memory Game (Flip the Cards)
+Match pairs of cards from memory
+
+13. Battleship (Local 2-player)
+Guess where opponent placed ships
+
+Turn-based play

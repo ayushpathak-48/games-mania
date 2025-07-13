@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import clsx from "clsx";
-import { motion, AnimatePresence } from "framer-motion";
 import { useGesture } from "@use-gesture/react";
-import Tile from "@/components/Tile";
 
 const SIZE = 4;
 
@@ -104,20 +102,12 @@ const checkGameOver = (grid: Grid): boolean => {
   });
 };
 
-type TileState = {
-  id: number;
-  x: number;
-  y: number;
-  value: number;
-};
-
 export default function Game2048() {
   const [grid, setGrid] = useState<Grid>(() =>
     spawnTile(spawnTile(createEmptyGrid())),
   );
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const [tiles, setTiles] = useState<TileState[]>([]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -190,7 +180,7 @@ export default function Game2048() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 select-none">
       <h1 className="text-4xl font-bold mb-4">2048</h1>
       <p className="text-xl mb-2">Score: {score}</p>
 
@@ -199,45 +189,33 @@ export default function Game2048() {
         className="grid gap-2 p-3 rounded-md shadow-lg"
         style={{ gridTemplateColumns: `repeat(${SIZE}, 5rem)` }}
       >
-        {/* <AnimatePresence mode="popLayout">
-          {grid.flat().map((value, idx) => (
-            <motion.div
-              key={idx + "-" + value} // ensures merge triggers animation
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 1.2, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className={clsx(
-                "w-20 h-20 rounded flex items-center justify-center text-xl font-bold",
-                value === 0
-                  ? "bg-orange-100 text-transparent"
-                  : value === 2
-                  ? "bg-orange-200"
-                  : value === 4
-                  ? "bg-orange-300"
-                  : value === 8
-                  ? "bg-orange-400 text-white"
-                  : value === 16
-                  ? "bg-orange-500 text-white"
-                  : value === 32
-                  ? "bg-orange-600 text-white"
-                  : value === 64
-                  ? "bg-orange-700 text-white"
-                  : value === 128
-                  ? "bg-orange-800 text-white"
-                  : "bg-black text-white",
-              )}
-            >
-              {value || ""}
-            </motion.div>
-          ))}
-        </AnimatePresence> */}
-
-        <AnimatePresence>
-          {tiles.map(({ x, y, value, id }) => (
-            <Tile key={id} x={x} y={y} value={value} id={id} />
-          ))}
-        </AnimatePresence>
+        {grid.flat().map((value, idx) => (
+          <div
+            key={idx + "-" + value} // ensures merge triggers animation
+            className={clsx(
+              "w-20 h-20 rounded flex items-center justify-center text-xl font-bold",
+              value === 0
+                ? "bg-orange-50 text-transparent"
+                : value === 2
+                ? "bg-orange-200 text-black"
+                : value === 4
+                ? "bg-orange-300 text-black"
+                : value === 8
+                ? "bg-orange-400 text-white"
+                : value === 16
+                ? "bg-orange-500 text-white"
+                : value === 32
+                ? "bg-orange-600 text-white"
+                : value === 64
+                ? "bg-orange-700 text-white"
+                : value === 128
+                ? "bg-orange-800 text-white"
+                : "bg-black text-white",
+            )}
+          >
+            {value || ""}
+          </div>
+        ))}
       </div>
 
       {gameOver && (
