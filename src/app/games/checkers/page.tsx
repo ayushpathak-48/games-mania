@@ -26,7 +26,6 @@ type Move = {
 };
 
 const CheckersGame = () => {
-  // Initialize empty board structure first
   const createEmptyBoard = (): Board => {
     return Array(8)
       .fill(null)
@@ -81,13 +80,13 @@ const CheckersGame = () => {
     initializeBoard();
   }, [initializeBoard]);
 
-  // Add safe access to board cells
+  // Helper function to safely get a piece
   const getPieceAt = (row: number, col: number): Piece | null => {
     if (row < 0 || row >= 8 || col < 0 || col >= 8) return null;
     return board[row]?.[col]?.piece ?? null;
   };
 
-  // Updated getAllValidMoves with safe access
+  // Get all valid moves for current player
   const getAllValidMoves = (player: "red" | "black"): Move[] => {
     const moves: Move[] = [];
     let hasCaptures = false;
@@ -96,8 +95,9 @@ const CheckersGame = () => {
       for (let col = 0; col < 8; col++) {
         const piece = getPieceAt(row, col);
         if (piece && piece.color === player) {
-          const pieceMoves = getValidMoves({ row, col });
+          const pieceMoves = getValidMovesForPiece(row, col);
           const captureMoves = pieceMoves.filter((move) => move.captures);
+
           if (captureMoves.length > 0) {
             hasCaptures = true;
             moves.push(...captureMoves);
@@ -111,9 +111,8 @@ const CheckersGame = () => {
     return hasCaptures ? moves.filter((move) => move.captures) : moves;
   };
 
-  // Updated getValidMoves with safe access
-  const getValidMoves = (position: Position): Move[] => {
-    const { row, col } = position;
+  // Get valid moves for a specific piece
+  const getValidMovesForPiece = (row: number, col: number): Move[] => {
     const piece = getPieceAt(row, col);
     if (!piece || piece.color !== currentPlayer) return [];
 
@@ -122,8 +121,6 @@ const CheckersGame = () => {
       piece.type === "pawn" ? (piece.color === "red" ? [1] : [-1]) : [1, -1]; // Kings can move both directions
 
     // Check for capture moves first (mandatory in checkers)
-    let hasCaptures = false;
-
     for (const rowDir of directions) {
       for (const colDir of [-1, 1]) {
         const jumpRow = row + rowDir;
@@ -131,7 +128,6 @@ const CheckersGame = () => {
         const landRow = row + 2 * rowDir;
         const landCol = col + 2 * colDir;
 
-        // Check if we can capture
         if (landRow >= 0 && landRow < 8 && landCol >= 0 && landCol < 8) {
           const jumpPiece = getPieceAt(jumpRow, jumpCol);
           const landPiece = getPieceAt(landRow, landCol);
@@ -142,13 +138,13 @@ const CheckersGame = () => {
               to: { row: landRow, col: landCol },
               captures: [{ row: jumpRow, col: jumpCol }],
             });
-            hasCaptures = true;
           }
         }
       }
     }
 
-    if (hasCaptures) return moves;
+    // If we have captures, only return those (captures are mandatory)
+    if (moves.length > 0) return moves;
 
     // Regular moves
     for (const rowDir of directions) {
@@ -172,7 +168,7 @@ const CheckersGame = () => {
 
   // Highlight valid moves for a selected piece
   const highlightValidMoves = (position: Position) => {
-    const moves = getValidMoves(position);
+    const moves = getValidMovesForPiece(position.row, position.col);
     const newBoard = board.map((row) =>
       row.map((cell) => ({ ...cell, isHighlighted: false })),
     );
@@ -192,12 +188,11 @@ const CheckersGame = () => {
 
     // If we clicked on a highlighted cell (move destination)
     if (cell.isHighlighted && selectedPiece) {
-      const move = getValidMoves(selectedPiece).find(
-        (m) => m.to.row === row && m.to.col === col,
-      );
+      const moves = getValidMovesForPiece(selectedPiece.row, selectedPiece.col);
+      const move = moves.find((m) => m.to.row === row && m.to.col === col);
 
       if (move) {
-        makeMove(move);
+        executeMove(move);
       }
       return;
     }
@@ -209,12 +204,11 @@ const CheckersGame = () => {
     }
   };
 
-  // Make a move on the board
-  const makeMove = (move: Move) => {
+  const executeMove = (move: Move) => {
     const newBoard = board.map((row) =>
       row.map((cell) => ({ ...cell, isHighlighted: false })),
     );
-    const { from, to, captures } = move;
+    const { from, to } = move;
     const movingPiece = newBoard[from.row][from.col].piece;
 
     if (!movingPiece) return;
@@ -223,44 +217,21 @@ const CheckersGame = () => {
     newBoard[to.row][to.col].piece = { ...movingPiece };
     newBoard[from.row][from.col].piece = null;
 
-    // Promote to king if reached the end
+    // Promote to king if reached the end - with proper null check
     if (movingPiece.type === "pawn") {
       if (
         (movingPiece.color === "red" && to.row === 7) ||
         (movingPiece.color === "black" && to.row === 0)
       ) {
-        newBoard[to.row][to.col].piece = { ...movingPiece, type: "king" };
+        // Safely update the piece type
+        const promotedPiece = newBoard[to.row][to.col].piece;
+        if (promotedPiece) {
+          newBoard[to.row][to.col].piece = {
+            ...promotedPiece,
+            type: "king",
+          };
+        }
       }
-    }
-
-    // Remove captured pieces
-    if (captures) {
-      for (const capture of captures) {
-        newBoard[capture.row][capture.col].piece = null;
-      }
-    }
-
-    setBoard(newBoard);
-    setSelectedPiece(null);
-
-    // Check for multi-capture
-    if (captures) {
-      const followUpCaptures = getValidMoves(to).filter((m) => m.captures);
-      if (followUpCaptures.length > 0) {
-        setSelectedPiece(to);
-        highlightValidMoves(to);
-        return;
-      }
-    }
-
-    // Switch player
-    const nextPlayer = currentPlayer === "red" ? "black" : "red";
-    setCurrentPlayer(nextPlayer);
-
-    // Check game over
-    const opponentMoves = getAllValidMoves(nextPlayer);
-    if (opponentMoves.length === 0) {
-      setGameStatus(currentPlayer === "red" ? "red-won" : "black-won");
     }
   };
 
@@ -275,7 +246,7 @@ const CheckersGame = () => {
       // Prefer captures that lead to promotion
       const promotingCaptures = captures.filter(
         (move) =>
-          board[move.from.row][move.from.col].piece?.type === "pawn" &&
+          getPieceAt(move.from.row, move.from.col)?.type === "pawn" &&
           move.to.row === 0,
       );
       if (promotingCaptures.length > 0) {
@@ -288,7 +259,7 @@ const CheckersGame = () => {
 
     // Prefer moves that get closer to promotion
     const pawnMoves = moves.filter(
-      (move) => board[move.from.row][move.from.col].piece?.type === "pawn",
+      (move) => getPieceAt(move.from.row, move.from.col)?.type === "pawn",
     );
     if (pawnMoves.length > 0) {
       // Sort by distance to promotion row
@@ -308,10 +279,10 @@ const CheckersGame = () => {
         setTimeout(() => {
           const aiMove = getAiMove();
           if (aiMove) {
-            makeMove(aiMove);
+            executeMove(aiMove);
           }
           setAiThinking(false);
-        }, 500); // Small delay to make AI move visible
+        }, 500);
       }, 300);
       return () => clearTimeout(timer);
     }
@@ -328,7 +299,7 @@ const CheckersGame = () => {
       // Prefer captures that lead to promotion
       const promotingCaptures = captures.filter(
         (move) =>
-          board[move.from.row][move.from.col].piece?.type === "pawn" &&
+          getPieceAt(move.from.row, move.from.col)?.type === "pawn" &&
           ((currentPlayer === "red" && move.to.row === 7) ||
             (currentPlayer === "black" && move.to.row === 0)),
       );
@@ -340,7 +311,7 @@ const CheckersGame = () => {
 
     // Prefer moves that get closer to promotion
     const pawnMoves = moves.filter(
-      (move) => board[move.from.row][move.from.col].piece?.type === "pawn",
+      (move) => getPieceAt(move.from.row, move.from.col)?.type === "pawn",
     );
     if (pawnMoves.length > 0) {
       // Sort by distance to promotion row
@@ -357,7 +328,6 @@ const CheckersGame = () => {
 
   const suggestedMove = showHints ? getSuggestedMove() : null;
 
-  // Render the board
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <div className="mb-4 flex justify-between w-full max-w-md">

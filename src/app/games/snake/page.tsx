@@ -70,7 +70,7 @@ export default function SnakeGame() {
         prevSnake.some((s) => s.x === newHead.x && s.y === newHead.y)
       ) {
         setGameOver(true);
-        clearInterval(intervalRef.current);
+        // clearInterval(intervalRef.current);
         return prevSnake;
       }
 
@@ -96,7 +96,7 @@ export default function SnakeGame() {
     setFood(freshFood);
     setScore(0);
     setGameOver(false);
-    clearInterval(intervalRef.current);
+    // clearInterval(intervalRef.current);
     intervalRef.current = setInterval(moveSnake, SPEED);
   };
 
@@ -105,7 +105,7 @@ export default function SnakeGame() {
     intervalRef.current = setInterval(moveSnake, SPEED);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      clearInterval(intervalRef.current);
+      // clearInterval(intervalRef.current);
     };
   }, [direction]);
 
