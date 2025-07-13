@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import clsx from "clsx";
 
 const SIZE = 8;
@@ -121,9 +121,48 @@ function applyMove(
   return newBoard;
 }
 
+function getValidMoves(board: Board, player: Player): [number, number][] {
+  const validMoves: [number, number][] = [];
+  for (let row = 0; row < SIZE; row++) {
+    for (let col = 0; col < SIZE; col++) {
+      if (isValidMove(board, row, col, player)) {
+        validMoves.push([row, col]);
+      }
+    }
+  }
+  return validMoves;
+}
+
+function countPieces(board: Board): { black: number; white: number } {
+  let black = 0;
+  let white = 0;
+  for (const row of board) {
+    for (const cell of row) {
+      if (cell === BLACK) black++;
+      if (cell === WHITE) white++;
+    }
+  }
+  return { black, white };
+}
+
 export default function ReversiGame() {
   const [board, setBoard] = useState<Board>(initializeBoard);
   const [turn, setTurn] = useState<Player>(BLACK);
+  const [gameOver, setGameOver] = useState(false);
+
+  const validMoves = getValidMoves(board, turn);
+  const { black, white } = countPieces(board);
+
+  useEffect(() => {
+    if (validMoves.length === 0) {
+      const otherMoves = getValidMoves(board, getOpponent(turn));
+      if (otherMoves.length === 0) {
+        setGameOver(true);
+      } else {
+        setTurn(getOpponent(turn));
+      }
+    }
+  }, [board, turn]);
 
   const handleClick = (row: number, col: number) => {
     if (isValidMove(board, row, col, turn)) {
@@ -134,7 +173,7 @@ export default function ReversiGame() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-zinc-800 to-gray-900 p-4">
       <style>{`
         .flip {
           transition: transform 0.6s;
@@ -148,19 +187,26 @@ export default function ReversiGame() {
           transform: rotateY(0deg);
         }
       `}</style>
-      <div>
-        <h1 className="text-3xl font-bold text-center mb-4 text-emerald-900">
-          Reversi (Othello)
-        </h1>
-        <div className="grid grid-cols-8 border-4 border-emerald-800">
-          {board.map((row, r) =>
-            row.map((cell, c) => (
+      <h1 className="text-3xl font-bold text-center mb-2 text-white">
+        Reversi (Othello)
+      </h1>
+      <div className="flex gap-4 mb-4 text-white">
+        <p>⚫ Black: {black}</p>
+        <p>⚪ White: {white}</p>
+      </div>
+      <div className="grid grid-cols-8 border-4 border-gray-700">
+        {board.map((row, r) =>
+          row.map((cell, c) => {
+            const isSuggested = validMoves.some(
+              ([vr, vc]) => vr === r && vc === c,
+            );
+            return (
               <div
                 key={`${r}-${c}`}
                 onClick={() => handleClick(r, c)}
                 className={clsx(
-                  "w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 border border-green-700 flex items-center justify-center cursor-pointer transition",
-                  "bg-gray-800 hover:bg-gray-900",
+                  "w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 border border-gray-600 flex items-center justify-center cursor-pointer transition relative",
+                  "bg-gray-800 hover:bg-gray-700",
                 )}
               >
                 {cell && (
@@ -173,14 +219,31 @@ export default function ReversiGame() {
                     ></div>
                   </div>
                 )}
+                {!cell && isSuggested && (
+                  <div
+                    className="absolute w-10 h-10 rounded-full border-4 opacity-30"
+                    style={{ borderColor: turn == BLACK ? "black" : "white" }}
+                  />
+                )}
               </div>
-            )),
-          )}
-        </div>
-        <p className="text-center mt-4 text-lg text-emerald-900">
+            );
+          }),
+        )}
+      </div>
+      {!gameOver ? (
+        <p className="text-center mt-4 text-lg text-white">
           Turn: {turn === BLACK ? "Black ⚫" : "White ⚪"}
         </p>
-      </div>
+      ) : (
+        <p className="text-center mt-4 text-2xl text-white font-bold">
+          Game Over!{" "}
+          {black > white
+            ? "⚫ Black Wins!"
+            : white > black
+            ? "⚪ White Wins!"
+            : "It's a Draw!"}
+        </p>
+      )}
     </div>
   );
 }

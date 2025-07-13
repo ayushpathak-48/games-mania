@@ -27,8 +27,12 @@ const games = [
     slug: "connect-four",
   },
   {
-    name: "Checkers game",
-    slug: "checkers",
+    name: "Reversi game",
+    slug: "reversi",
+  },
+  {
+    name: "Simon Says game",
+    slug: "simon-says",
   },
 ];
 
